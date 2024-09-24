@@ -25,17 +25,17 @@ def DiffAugment(x, policy="", channels_first=True):
 def augment_brightness(x):
     # Uses torch ColorJitter to uniformly adjust brightness between 0-50%
 
-    return torchvision.transforms.ColorJitter(x, brightness=0.5)
+    return torchvision.transforms.ColorJitter(brightness=0.5)(x)
 
 
 def augment_saturation(x):
     # Uses torch ColorJitter to uniformly adjust saturation between 0-50%
-    return torchvision.transforms.ColorJitter(x, saturation=1)
+    return torchvision.transforms.ColorJitter(saturation=1)(x)
 
 
 def augment_contrast(x):
     # Uses torch ColorJitter to uniformly adjust contrast between 0-10%
-    return torchvision.transforms.ColorJitter(x, contrast=0.5)
+    return torchvision.transforms.ColorJitter(contrast=0.5)(x)
 
 
 def augment_translation(x, ratio=0.125):
