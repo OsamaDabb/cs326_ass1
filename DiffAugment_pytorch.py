@@ -43,7 +43,7 @@ def augment_translation(x, ratio=0.125):
     to_pil = torchvision.transforms.ToPILImage()
 
     # Apply the transformation to each image in the batch
-    translated_images = torch.stack([transform(to_pil(img)) for img in x])
+    translated_images = torch.stack([transform(to_pil(img.cpu())) for img in x])
 
     return translated_images
 
