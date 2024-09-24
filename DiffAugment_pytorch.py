@@ -26,7 +26,7 @@ def augment_brightness(x):
     # Uses torch ColorJitter to uniformly adjust brightness between 0-50%
 
     #necessary transforms for augment
-    transform = torchvision.transforms.ColorJitter(brightness=0.5)(x)
+    transform = torchvision.transforms.ColorJitter(brightness=0.5)
     to_pil = torchvision.transforms.ToPILImage()
     to_tens = torchvision.transforms.ToTensor()
 
@@ -41,7 +41,7 @@ def augment_saturation(x):
     # Uses torch ColorJitter to uniformly adjust saturation between 0-50%
 
     # necessary transforms for augment
-    transform = torchvision.transforms.ColorJitter(saturation=1)(x)
+    transform = torchvision.transforms.ColorJitter(saturation=1)
     to_pil = torchvision.transforms.ToPILImage()
     to_tens = torchvision.transforms.ToTensor()
 
@@ -56,7 +56,7 @@ def augment_contrast(x):
     # Uses torch ColorJitter to uniformly adjust contrast between 0-10%
 
     # necessary transforms for augment
-    transform = torchvision.transforms.ColorJitter(contrast=0.5)(x)
+    transform = torchvision.transforms.ColorJitter(contrast=0.5)
     to_pil = torchvision.transforms.ToPILImage()
     to_tens = torchvision.transforms.ToTensor()
 
