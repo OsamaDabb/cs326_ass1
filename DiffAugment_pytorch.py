@@ -23,13 +23,11 @@ def DiffAugment(x, policy="", channels_first=True):
 
 
 def augment_brightness(x):
-    # add (rand() - 0.5) * x to x to randomly scale x by -50% to +50%
 
-    x = x + x * (torch.rand(torch.size(0), 1, 1, 1, device=x.device) - 0.5)
-
+    # add (rand() - 0.5) * x to x to randomly scale x by -50% to +50%,
+    # effectively increasing or decreasing image brightness
+    x = x + x * (torch.rand(x.size(0), 1, 1, 1, device=x.device) - 0.5)
     return x
-
-
 
 
 def augment_saturation(x):
@@ -49,7 +47,7 @@ def augment_contrast(x):
 
     mean_val = x.mean(dim=[1,2,3], keep_dim=True)
 
-    x = (x - mean_val) * (torch.rand(torch.size(0), 1, 1, 1, device = x.device) + 0.5) + mean_val
+    x = (x - mean_val) * (torch.rand(x.size(0), 1, 1, 1, device = x.device) + 0.5) + mean_val
 
     return x
 
