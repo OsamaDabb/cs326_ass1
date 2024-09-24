@@ -45,7 +45,7 @@ def augment_contrast(x):
     # calculate mean for each image, then multiply each value (x - mean_val) by rand(0.5-1.5), effectively
     # scaling the variance (and thus the contrast) of the image by rand(0.5-1.5)
 
-    mean_val = x.mean(dim=(1,2,3), keep_dim=True, dtype=x.dtype)
+    mean_val = x.mean(dim=(1,2,3), keepdim=True, dtype=x.dtype)
 
     x = (x - mean_val) * (torch.rand(x.size(0), 1, 1, 1, device = x.device) + 0.5) + mean_val
 
