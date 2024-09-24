@@ -74,7 +74,7 @@ def augment_translation(x, ratio=0.125):
 def augment_cutout(x, ratio=0.5):
     # assuming x: [B, C, L, W], define a region that is L*ratio x W*ratio,
     # finally, sets that region to zero
-
+    """
     l, w = x.shape[2], x.shape[3]
     mask_l, mask_w = int(l * ratio), int(w * ratio)
 
@@ -82,6 +82,7 @@ def augment_cutout(x, ratio=0.5):
 
     x[:, :, mask_x:mask_x+mask_l, mask_y:mask_y+mask_w] = 0
 
+    return x"""
     return x
 
 
