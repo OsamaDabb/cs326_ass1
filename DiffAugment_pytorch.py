@@ -27,7 +27,7 @@ def augment_brightness(x):
 
     jittered_image = torch.zeros_like(x)
 
-    for idx, img in x:
+    for idx, img in enumerate(x):
 
         brightness_factor = random.uniform(0.5, 1.5)
 
@@ -44,7 +44,7 @@ def augment_saturation(x):
 
     jittered_image = torch.zeros_like(x)
 
-    for idx, img in x:
+    for idx, img in enumerate(x):
 
         saturation_factor = random.uniform(0.8, 1.2)
 
@@ -59,7 +59,7 @@ def augment_contrast(x):
 
     jittered_image = torch.zeros_like(x)
 
-    for idx, img in x:
+    for idx, img in enumerate(x):
         contrast_factor = random.uniform(0.5, 1.5)
 
         # Apply the brightness factor
