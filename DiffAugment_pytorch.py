@@ -25,17 +25,46 @@ def DiffAugment(x, policy="", channels_first=True):
 def augment_brightness(x):
     # Uses torch ColorJitter to uniformly adjust brightness between 0-50%
 
-    return torchvision.transforms.ColorJitter(brightness=0.5)(x)
+    #necessary transforms for augment
+    transform = torchvision.transforms.ColorJitter(brightness=0.5)(x)
+    to_pil = torchvision.transforms.ToPILImage()
+    to_tens = torchvision.transforms.ToTensor()
+
+    # Apply the transformation to each image in the batch
+    translated_images = torch.stack([to_tens(
+                                        transform(to_pil(img.cpu()))) for img in x])
+
+    return translated_images
 
 
 def augment_saturation(x):
     # Uses torch ColorJitter to uniformly adjust saturation between 0-50%
-    return torchvision.transforms.ColorJitter(saturation=1)(x)
+
+    # necessary transforms for augment
+    transform = torchvision.transforms.ColorJitter(saturation=1)(x)
+    to_pil = torchvision.transforms.ToPILImage()
+    to_tens = torchvision.transforms.ToTensor()
+
+    # Apply the transformation to each image in the batch
+    translated_images = torch.stack([to_tens(
+        transform(to_pil(img.cpu()))) for img in x])
+
+    return translated_images
 
 
 def augment_contrast(x):
     # Uses torch ColorJitter to uniformly adjust contrast between 0-10%
-    return torchvision.transforms.ColorJitter(contrast=0.5)(x)
+
+    # necessary transforms for augment
+    transform = torchvision.transforms.ColorJitter(contrast=0.5)(x)
+    to_pil = torchvision.transforms.ToPILImage()
+    to_tens = torchvision.transforms.ToTensor()
+
+    # Apply the transformation to each image in the batch
+    translated_images = torch.stack([to_tens(
+        transform(to_pil(img.cpu()))) for img in x])
+
+    return translated_images
 
 
 def augment_translation(x, ratio=0.125):
