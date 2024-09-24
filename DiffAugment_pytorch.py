@@ -40,6 +40,7 @@ def augment_contrast(x):
 
 def augment_translation(x, ratio=0.125):
     # Use torch RandomAffine to translate image up to 10% in all four directions
+    print(type(x))
     return torchvision.transforms.RandomAffine(degrees=0, translate=(1/8, 1/8))(x)
 
 
