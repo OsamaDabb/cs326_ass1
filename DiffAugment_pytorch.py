@@ -32,7 +32,7 @@ def augment_brightness(x):
         brightness_factor = random.uniform(0.5, 1.5)
 
         # Apply the brightness factor
-        jittered_image[idx] = torch.clamp(x * brightness_factor, 0, 1)
+        jittered_image[idx] = torch.clamp(img * brightness_factor, 0, 1)
 
     return jittered_image
 
@@ -63,7 +63,7 @@ def augment_contrast(x):
         contrast_factor = random.uniform(0.5, 1.5)
 
         # Apply the brightness factor
-        jittered_image[idx] = torch.clamp(x + (x - x.mean()) * contrast_factor, 0, 1)
+        jittered_image[idx] = torch.clamp(img + (img - img.mean()) * contrast_factor, 0, 1)
 
     return jittered_image
 
