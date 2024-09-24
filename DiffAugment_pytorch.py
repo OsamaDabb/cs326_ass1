@@ -41,9 +41,11 @@ def augment_contrast(x):
 def augment_translation(x, ratio=0.125):
     transform = torchvision.transforms.RandomAffine(degrees=0, translate=(ratio, ratio))
     to_pil = torchvision.transforms.ToPILImage()
+    to_tens = torchvision.transforms.ToTensor()
 
     # Apply the transformation to each image in the batch
-    translated_images = torch.stack([transform(to_pil(img.cpu())) for img in x])
+    translated_images = torch.stack([to_tens(
+                                        transform(to_pil(img.cpu()))) for img in x])
 
     return translated_images
 
