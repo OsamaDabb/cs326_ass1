@@ -39,13 +39,24 @@ def augment_contrast(x):
 
 
 def augment_translation(x, ratio=0.125):
-    # Use torch RandomAffine to translate image up to 10% in all four directions
-    transform = torchvision.transforms.RandomAffine(degrees=0, translate=(1/8, 1/8))
+    batch_size, channels, height, width = x.shape
 
-    # Apply the transformation to each image in the batch
-    translated_images = torch.stack([transform(img) for img in x])
+    # Define the maximum translation in pixels
+    max_dx = int(width * ratio)
+    max_dy = int(height * ratio)
 
-    return translated_images
+    translated_images = []
+
+    for img in x:
+        # Generate random translation values
+        dx = random.randint(-max_dx, max_dx)
+        dy = random.randint(-max_dy, max_dy)
+
+        # Apply the translation
+        translated_img = torchvision.transforms.functional.affine(img, angle=0, translate=(dx, dy), scale=1.0, shear=0)
+        translated_images.append(translated_img)
+
+    return torch.stack(translated_images)
 
 
 def augment_cutout(x, ratio=0.5):
