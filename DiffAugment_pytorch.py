@@ -3,7 +3,7 @@ Defining the DiffAugment augmentations.
 Implement your differentiable augmentation functions here.
 """
 
-import torch
+import torch, torchvision
 import torch.nn.functional as F
 import random
 
@@ -25,22 +25,22 @@ def DiffAugment(x, policy="", channels_first=True):
 def augment_brightness(x):
     # Uses torch ColorJitter to uniformly adjust brightness between 0-50%
 
-    return torch.transforms.ColorJitter(x, brightness=0.5)
+    return torchvision.transforms.ColorJitter(x, brightness=0.5)
 
 
 def augment_saturation(x):
     # Uses torch ColorJitter to uniformly adjust saturation between 0-50%
-    return torch.transforms.ColorJitter(x, saturation=1)
+    return torchvision.transforms.ColorJitter(x, saturation=1)
 
 
 def augment_contrast(x):
     # Uses torch ColorJitter to uniformly adjust contrast between 0-10%
-    return torch.transforms.ColorJitter(x, contrast=0.5)
+    return torchvision.transforms.ColorJitter(x, contrast=0.5)
 
 
 def augment_translation(x, ratio=0.125):
     # Use torch RandomAffine to translate image up to 10% in all four directions
-    return torch.transforms.RandomAffine(degrees=0, translate=(1/8, 1/8))
+    return torchvision.transforms.RandomAffine(degrees=0, translate=(1/8, 1/8))
 
 
 def augment_cutout(x, ratio=0.5):
