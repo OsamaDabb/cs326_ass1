@@ -23,67 +23,104 @@ def DiffAugment(x, policy="", channels_first=True):
 
 
 def augment_brightness(x):
-    # Manually augment the brightness of the images using direct scaling
+    # add (rand() - 0.5) * x to x to randomly scale x by -50% to +50%
 
-    jittered_image = torch.zeros_like(x)
+    x = x + x * (torch.rand(torch.size(0), 1, 1, 1, device=x.device) - 0.5)
 
-    for idx, img in enumerate(x):
-
-        brightness_factor = random.uniform(0.5, 1.5)
-
-        # Apply the brightness factor
-        jittered_image[idx] = torch.clamp(img * brightness_factor, 0, 1)
-
-    return jittered_image
+    return x
 
 
 
 
 def augment_saturation(x):
-    # Uses torch ColorJitter to uniformly adjust saturation between 0-50%
 
+    # calculate mean of image across each channel
+    mean_val = x.mean(dim=1, keepdim=True)
+
+    # Scale the variance (x - mean_val) for each channel by constant 2*rand() to increase
+    # relative color saturation across the image.
+    x = (x - mean_val) * (torch.rand(x.size(0), 1, 1, 1, dtype=x.dtype, device=x.device) * 2) + mean_val
     return x
 
 
 def augment_contrast(x):
-    # Uses torch ColorJitter to uniformly adjust contrast between 0-10%
+    # calculate mean for each image, then multiply each value (x - mean_val) by rand(0.5-1.5), effectively
+    # scaling the variance (and thus the contrast) of the image by rand(0.5-1.5)
 
-    jittered_image = torch.zeros_like(x)
+    mean_val = x.mean(dim=[1,2,3], keep_dim=True)
 
-    for idx, img in enumerate(x):
-        contrast_factor = random.uniform(0.5, 1.5)
+    x = (x - mean_val) * (torch.rand(torch.size(0), 1, 1, 1, device = x.device) + 0.5) + mean_val
 
-        # Apply the brightness factor
-        jittered_image[idx] = torch.clamp(img + (img - img.mean()) * contrast_factor, 0, 1)
-
-    return jittered_image
-
+    return x
 
 def augment_translation(x, ratio=0.125):
-    transform = torchvision.transforms.RandomAffine(degrees=0, translate=(ratio, ratio))
-    to_pil = torchvision.transforms.ToPILImage()
-    to_tens = torchvision.transforms.ToTensor()
 
-    # Apply the transformation to each image in the batch
-    translated_images = torch.stack([to_tens(
-                                        transform(to_pil(img.cpu()))) for img in x])
+    # Calculate the number of pixels to shift in x and y directions, based on ratio
+    shift_x = int(x.size(2) * ratio + 0.5)  # Get shift in width
+    shift_y = int(x.size(3) * ratio + 0.5)  # Get shift in height
 
-    return translated_images
+    # Generate random translations within the bounds [-shift_x, shift_x] for each image in the batch
+    translation_x = torch.randint(low=-shift_x, high=shift_x + 1, size=[x.size(0), 1, 1],
+                                  device=x.device)  # Translation for width
+    translation_y = torch.randint(low=-shift_y, high=shift_y + 1, size=[x.size(0), 1, 1],
+                                  device=x.device)  # Translation for height
+
+    # Create meshgrid for batch indices, width indices, and height indices
+    batch_indices = torch.arange(x.size(0), dtype=torch.long, device=x.device)  # Batch size dimension
+    height_indices = torch.arange(x.size(2), dtype=torch.long, device=x.device)  # Height dimension
+    width_indices = torch.arange(x.size(3), dtype=torch.long, device=x.device)  # Width dimension
+    grid_batch, grid_h, grid_w = torch.meshgrid(batch_indices, height_indices,
+                                                width_indices)  # Create a grid of batch, height, width
+
+    # Adjust grid for translation by adding the translations, and clamp the values to ensure they're within the valid range
+    adjusted_grid_h = torch.clamp(grid_h + translation_x + 1, min=0, max=x.size(2) + 1)  # Clamping height grid
+    adjusted_grid_w = torch.clamp(grid_w + translation_y + 1, min=0, max=x.size(3) + 1)  # Clamping width grid
+
+    # Pad the input tensor 'x' by 1 pixel on all sides, except the batch and channel dimensions
+    x_padded = F.pad(x, pad=[1, 1, 1, 1, 0, 0, 0, 0])  # Padding in the height and width dimensions only
+
+    # Permute and apply the translations, rearranging the data and accessing it through the adjusted grid indices
+    x_transformed = x_padded.permute(0, 2, 3, 1).contiguous()  # Rearrange dimensions to make height and width first
+    x_transformed = x_transformed[grid_batch, adjusted_grid_h, adjusted_grid_w]  # Access values using the new grid
+    x_transformed = x_transformed.permute(0, 3, 1,
+                                          2).contiguous()  # Rearrange back to original batch, channel, height, width order
+
+    # Return the transformed tensor 'x'
+    return x_transformed
 
 
 def augment_cutout(x, ratio=0.5):
-    # assuming x: [B, C, L, W], define a region that is L*ratio x W*ratio,
-    # finally, sets that region to zero
-    """
-    l, w = x.shape[2], x.shape[3]
-    mask_l, mask_w = int(l * ratio), int(w * ratio)
+    # Calculate the size of the cutout based on the ratio and input dimensions
+    cutout_height = int(x.size(2) * ratio + 0.5)  # Cutout height
+    cutout_width = int(x.size(3) * ratio + 0.5)  # Cutout width
+    cutout_size = (cutout_height, cutout_width)  # Combined cutout size
 
-    mask_x, mask_y = random.randint(0, l - mask_l), random.randint(0, w - mask_w)
+    # Generate random offsets for the top-left corner of the cutout region within the valid range
+    offset_x = torch.randint(0, x.size(2) + (1 - cutout_size[0] % 2), size=[x.size(0), 1, 1],
+                             device=x.device)  # Offset for height
+    offset_y = torch.randint(0, x.size(3) + (1 - cutout_size[1] % 2), size=[x.size(0), 1, 1],
+                             device=x.device)  # Offset for width
 
-    x[:, :, mask_x:mask_x+mask_l, mask_y:mask_y+mask_w] = 0
+    # Create a meshgrid of indices for batch size, cutout height, and cutout width
+    batch_idx = torch.arange(x.size(0), dtype=torch.long, device=x.device)  # Batch index range
+    cutout_h_idx = torch.arange(cutout_size[0], dtype=torch.long, device=x.device)  # Cutout height range
+    cutout_w_idx = torch.arange(cutout_size[1], dtype=torch.long, device=x.device)  # Cutout width range
+    grid_batch, grid_h, grid_w = torch.meshgrid(batch_idx, cutout_h_idx, cutout_w_idx)  # Generate meshgrid
 
-    return x"""
-    return x
+    # Adjust the grid by shifting the cutout and clamp the values to ensure they stay within valid image dimensions
+    adjusted_grid_h = torch.clamp(grid_h + offset_x - cutout_size[0] // 2, min=0,
+                                  max=x.size(2) - 1)  # Adjusted height grid
+    adjusted_grid_w = torch.clamp(grid_w + offset_y - cutout_size[1] // 2, min=0,
+                                  max=x.size(3) - 1)  # Adjusted width grid
+
+    # Create a mask of ones (same size as input) and set the cutout region to zero
+    mask = torch.ones(x.size(0), x.size(2), x.size(3), dtype=x.dtype, device=x.device)  # All ones mask
+    mask[grid_batch, adjusted_grid_h, adjusted_grid_w] = 0  # Set cutout region to zero
+
+    # Apply the mask to the input tensor, cutting out the selected region
+    x_cutout = x * mask.unsqueeze(1)  # Unsqueeze to match the input dimensions and apply mask
+
+    return x_cutout  # Return the result with the cutout applied
 
 
 AUGMENT_FNS = {
