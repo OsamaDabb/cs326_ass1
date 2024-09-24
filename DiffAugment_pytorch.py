@@ -42,16 +42,7 @@ def augment_brightness(x):
 def augment_saturation(x):
     # Uses torch ColorJitter to uniformly adjust saturation between 0-50%
 
-    jittered_image = torch.zeros_like(x)
-
-    for idx, img in enumerate(x):
-
-        saturation_factor = random.uniform(0.8, 1.2)
-
-        # Apply the brightness factor
-        jittered_image[idx] = torchvision.transforms.functional.adjust_saturation(img, saturation_factor)
-
-    return jittered_image
+    return x
 
 
 def augment_contrast(x):
