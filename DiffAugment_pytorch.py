@@ -23,48 +23,49 @@ def DiffAugment(x, policy="", channels_first=True):
 
 
 def augment_brightness(x):
-    # Uses torch ColorJitter to uniformly adjust brightness between 0-50%
+    # Manually augment the brightness of the images using direct scaling
 
-    #necessary transforms for augment
-    transform = torchvision.transforms.ColorJitter(brightness=0.5)
-    to_pil = torchvision.transforms.ToPILImage()
-    to_tens = torchvision.transforms.ToTensor()
+    jittered_image = torch.zeros_like(x)
 
-    # Apply the transformation to each image in the batch
-    translated_images = torch.stack([to_tens(
-                                        transform(to_pil(img.cpu()))) for img in x])
+    for idx, img in x:
 
-    return translated_images
+        brightness_factor = random.uniform(0.5, 1.5)
+
+        # Apply the brightness factor
+        jittered_image[idx] = torch.clamp(x * brightness_factor, 0, 1)
+
+    return jittered_image
+
+
 
 
 def augment_saturation(x):
     # Uses torch ColorJitter to uniformly adjust saturation between 0-50%
 
-    # necessary transforms for augment
-    transform = torchvision.transforms.ColorJitter(saturation=1)
-    to_pil = torchvision.transforms.ToPILImage()
-    to_tens = torchvision.transforms.ToTensor()
+    jittered_image = torch.zeros_like(x)
 
-    # Apply the transformation to each image in the batch
-    translated_images = torch.stack([to_tens(
-        transform(to_pil(img.cpu()))) for img in x])
+    for idx, img in x:
 
-    return translated_images
+        saturation_factor = random.uniform(0.8, 1.2)
+
+        # Apply the brightness factor
+        jittered_image[idx] = torchvision.transforms.functional.adjust_saturation(img, saturation_factor)
+
+    return jittered_image
 
 
 def augment_contrast(x):
     # Uses torch ColorJitter to uniformly adjust contrast between 0-10%
 
-    # necessary transforms for augment
-    transform = torchvision.transforms.ColorJitter(contrast=0.5)
-    to_pil = torchvision.transforms.ToPILImage()
-    to_tens = torchvision.transforms.ToTensor()
+    jittered_image = torch.zeros_like(x)
 
-    # Apply the transformation to each image in the batch
-    translated_images = torch.stack([to_tens(
-        transform(to_pil(img.cpu()))) for img in x])
+    for idx, img in x:
+        contrast_factor = random.uniform(0.5, 1.5)
 
-    return translated_images
+        # Apply the brightness factor
+        jittered_image[idx] = torch.clamp(x + (x - x.mean()) * contrast_factor, 0, 1)
+
+    return jittered_image
 
 
 def augment_translation(x, ratio=0.125):
